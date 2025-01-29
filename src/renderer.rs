@@ -24,6 +24,7 @@ pub struct Renderer {
     texture_blend_loc: i32,
     texture_sampler_loc: i32,
     texture_blend: f32,
+	target_texture_blend: f32,
     render_mode: RenderMode,
 }
 
@@ -84,6 +85,7 @@ impl Renderer {
             texture_blend_loc,
             texture_sampler_loc,
             texture_blend: 0.0,
+			target_texture_blend: 0.0,
             render_mode: RenderMode::Vertex,
         }
     }
@@ -178,11 +180,22 @@ impl Renderer {
             RenderMode::Texture => RenderMode::Vertex,
         };
 
-        // Update texture blend based on mode
-        self.texture_blend = match self.render_mode {
-            RenderMode::Texture => 1.0,
-            RenderMode::Face => 0.5,
+        // Set target blend based on new mode
+        self.target_texture_blend = match self.render_mode {
             RenderMode::Vertex => 0.0,
+            RenderMode::Face => 0.5,
+            RenderMode::Texture => 1.0,
         };
     }
+
+	pub fn update(&mut self, delta_time: f32) {
+		let transition_speed = 3.0;
+		let delta = self.target_texture_blend - self.texture_blend;
+		if delta.abs() > 0.001 {
+			self.texture_blend += delta * transition_speed * delta_time;
+			if (self.target_texture_blend - self.texture_blend).abs() < 0.001 {
+				self.texture_blend = self.target_texture_blend;
+			}
+		}
+	}
 }

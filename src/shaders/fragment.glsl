@@ -39,19 +39,28 @@ vec3 getFaceColor(vec3 normal) {
 }
 
 void main() {
-    if (textureBlend > 0.5) {
-        // Mode 2: Texture
-        FragColor = texture(textureSampler, TexCoord);
-    } else if (textureBlend < 0.1) {
-        // Mode 0: Vertex color
-        FragColor = vec4(
-            0.5 + (FragPos.x + 1.0) * 0.2,
-            0.5 + (FragPos.y + 1.0) * 0.2,
-            0.8 + (FragPos.z + 1.0) * 0.2,
-            1.0
-        );
+    // Compute all three color modes
+    vec4 vertexColor = vec4(
+        0.5 + (FragPos.x + 1.0) * 0.2,
+        0.5 + (FragPos.y + 1.0) * 0.2,
+        0.8 + (FragPos.z + 1.0) * 0.2,
+        1.0
+    );
+    vec4 faceColor = vec4(getFaceColor(normalize(Normal)), 1.0);
+    vec4 textureColor = texture(textureSampler, TexCoord);
+
+    vec4 finalColor;
+
+    // Smooth transitions between modes
+    if (textureBlend <= 0.5) {
+        // Blend Vertex -> Face
+        float t = textureBlend / 0.5;
+        finalColor = mix(vertexColor, faceColor, t);
     } else {
-        // Mode 1: Face-based color
-        FragColor = vec4(getFaceColor(normalize(Normal)), 1.0);
+        // Blend Face -> Texture
+        float t = (textureBlend - 0.5) / 0.5;
+        finalColor = mix(faceColor, textureColor, t);
     }
+
+    FragColor = finalColor;
 }

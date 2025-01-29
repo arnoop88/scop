@@ -101,8 +101,10 @@ fn main() {
 
     'mainloop: loop {
         let current_frame = Instant::now();
-        let _delta_time = (current_frame - last_frame).as_secs_f32();
+        let delta_time = (current_frame - last_frame).as_secs_f32();
         last_frame = current_frame;
+
+		renderer.update(delta_time);
 
         for event in sdl_context.event_pump().unwrap().poll_iter() {
             match event {

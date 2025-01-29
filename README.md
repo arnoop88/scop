@@ -10,6 +10,7 @@ This project is a simple 3D viewer built using Rust and OpenGL. It allows you to
   - **Mode 1**: Colorful vertex-based rendering.
   - **Mode 2**: Face-based color rendering, where each face is colored based on its normal direction.
   - **Mode 3**: Textured rendering using a specified texture image.
+- **Smooth Transition**: Smoothly transition between rendering modes.
 - **Camera Control**: Zoom in and out, and rotate the model.
 - **Command-Line Arguments**: Specify the model and texture files when running the program.
 
