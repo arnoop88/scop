@@ -54,7 +54,7 @@ fn main() {
     gl_attr.set_context_version(3, 3);
 
     let window = video_subsystem
-        .window("3D Viewer", 1024, 768)
+        .window("SCOP", 1024, 768)
         .opengl()
         .position_centered()
         .build()
