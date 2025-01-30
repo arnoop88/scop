@@ -198,7 +198,7 @@ impl Renderer {
     }
 
 	pub fn update(&mut self, delta_time: f32) {
-        let transition_speed = 3.0;
+        let transition_speed = 1.5;
         self.transition_progress += delta_time * transition_speed;
         self.transition_progress = self.transition_progress.min(1.0);
 
