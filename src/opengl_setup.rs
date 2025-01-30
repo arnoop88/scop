@@ -56,43 +56,41 @@ pub fn setup_opengl_buffers(obj_data: &ObjData) -> (gl::types::GLuint, gl::types
             gl::STATIC_DRAW,
         );
 
-        // Each vertex has: 3 floats (position) + 2 floats (tex) + 3 floats (normal) = 8 floats total
         let stride = 8 * mem::size_of::<f32>();
 
         // Position attribute (3 floats)
         gl::VertexAttribPointer(
-            0,                          // location
-            3,                          // size (3 components)
-            gl::FLOAT,                  // type
-            gl::FALSE,                  // normalized?
-            stride as gl::types::GLint, // stride
-            ptr::null(),                // offset
+            0,
+            3,
+            gl::FLOAT,
+            gl::FALSE,
+            stride as gl::types::GLint,
+            ptr::null(),
         );
         gl::EnableVertexAttribArray(0);
 
         // Texture coordinate attribute (2 floats)
         gl::VertexAttribPointer(
-            1,                                            // location
-            2,                                            // size (2 components)
-            gl::FLOAT,                                    // type
-            gl::FALSE,                                    // normalized?
-            stride as gl::types::GLint,                   // stride
-            (3 * mem::size_of::<f32>()) as *const c_void, // offset
+            1,
+            2,
+            gl::FLOAT,
+            gl::FALSE,
+            stride as gl::types::GLint,
+            (3 * mem::size_of::<f32>()) as *const c_void,
         );
         gl::EnableVertexAttribArray(1);
 
         // Normal attribute (3 floats)
         gl::VertexAttribPointer(
-            2,                                            // location
-            3,                                            // size (3 components)
-            gl::FLOAT,                                    // type
-            gl::FALSE,                                    // normalized?
-            stride as gl::types::GLint,                   // stride
-            (5 * mem::size_of::<f32>()) as *const c_void, // offset
+            2,
+            3,
+            gl::FLOAT,
+            gl::FALSE,
+            stride as gl::types::GLint,
+            (5 * mem::size_of::<f32>()) as *const c_void,
         );
         gl::EnableVertexAttribArray(2);
 
-        // Don't unbind the EBO while a VAO is bound
         gl::BindVertexArray(0);
         gl::BindBuffer(gl::ARRAY_BUFFER, 0);
         gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, 0);

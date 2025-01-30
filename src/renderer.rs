@@ -27,6 +27,7 @@ pub struct Renderer {
     render_mode: RenderMode,
 	current_mode: RenderMode,
     target_mode: RenderMode,
+	projection_loc: i32,
     transition_progress: f32,
 }
 
@@ -44,7 +45,6 @@ impl Renderer {
         unsafe {
             gl::Enable(gl::DEPTH_TEST);
             gl::DepthFunc(gl::LESS);
-            gl::Viewport(0, 0, 1024, 768);
         }
 
         let pos_offset_loc = unsafe {
@@ -79,10 +79,18 @@ impl Renderer {
             )
         };
 
+        let projection_loc = unsafe {
+            gl::GetUniformLocation(
+                shader_program,
+                std::ffi::CString::new("projection").unwrap().as_ptr(),
+            )
+        };
+
         Renderer {
             shader_program,
             vao,
             model_loc,
+            projection_loc,
             pos_offset_loc,
             model_center_loc,
             model_position_loc,
@@ -112,13 +120,14 @@ impl Renderer {
             gl::UseProgram(self.shader_program);
             gl::BindVertexArray(self.vao);
 
-            // Only rotation in model matrix
+			gl::UniformMatrix4fv(self.projection_loc, 1, gl::FALSE, camera.projection.as_ptr() as *const f32);
+
             let model = matrices::mat4_mul(
                 matrices::mat4_rotation_y(model_rotation.y_angle),
                 matrices::mat4_rotation_x(model_rotation.x_angle),
             );
-
-            gl::UniformMatrix4fv(self.model_loc, 1, gl::FALSE, model.as_ptr() as *const f32);
+			
+			gl::UniformMatrix4fv(self.model_loc, 1, gl::FALSE, model.as_ptr() as *const f32);
 
             // Handle texture if available
             if let Some(ref texture) = self.texture {
@@ -134,14 +143,13 @@ impl Renderer {
                 }
             }
 
-            match self.current_mode {
+            match self.render_mode {
                 RenderMode::Vertex => gl::PolygonMode(gl::FRONT_AND_BACK, gl::LINE),
                 RenderMode::Face | RenderMode::Texture => {
                     gl::PolygonMode(gl::FRONT_AND_BACK, gl::FILL)
                 }
             }
 
-            // Set uniforms
             if self.pos_offset_loc >= 0 {
                 gl::Uniform1f(self.pos_offset_loc, camera.position[2] - model_position.z);
             }
@@ -186,7 +194,6 @@ impl Renderer {
             RenderMode::Face => RenderMode::Texture,
             RenderMode::Texture => RenderMode::Vertex,
         };
-		self.render_mode = self.target_mode;
         self.transition_progress = 0.0;
     }
 
@@ -202,6 +209,7 @@ impl Renderer {
             _ => self.texture_blend,
         };
 
+		self.render_mode = self.target_mode;
         if self.transition_progress >= 1.0 {
             self.current_mode = self.target_mode;
         }

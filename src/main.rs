@@ -12,7 +12,8 @@ mod texture;
 
 use camera::Camera;
 use renderer::Renderer;
-use sdl2::keyboard::Keycode;
+use sdl2::keyboard::Keycode;	
+use sdl2::event::WindowEvent;
 use std::ffi::CString;
 use std::time::Instant;
 use std::env;
@@ -20,7 +21,7 @@ use std::env;
 fn main() {
     let args: Vec<String> = env::args().collect();
     
-    // Default values
+    // argument handler
     let (model_path, texture_path) = match args.len() {
         1 => ("models/42.obj", "textures/sigma_cat.bmp"),
         2 => {
@@ -30,8 +31,9 @@ fn main() {
             } else if arg.ends_with(".bmp") {
                 ("models/42.obj", arg)
             } else {
-                ("models/42.obj", "textures/sigma_cat.bmp")
-            }
+				eprintln!("Invalid arguments\nModels accepted: .obj, Textures accepted: .bmp");
+				std::process::exit(1);
+			}
         },
         3 => {
             let (arg1, arg2) = (args[1].as_str(), args[2].as_str());
@@ -40,10 +42,14 @@ fn main() {
             } else if arg1.ends_with(".bmp") && arg2.ends_with(".obj") {
                 (arg2, arg1)
             } else {
-                ("models/42.obj", "textures/sigma_cat.bmp")
-            }
+				eprintln!("Invalid arguments\nModels accepted: .obj, Textures accepted: .bmp");
+				std::process::exit(1);
+			}
         },
-        _ => ("models/42.obj", "textures/sigma_cat.bmp"),
+        _ => {
+            eprintln!("Error: Too many arguments");
+            std::process::exit(1);
+        }
     };
 
     let sdl_context = sdl2::init().unwrap();
@@ -59,6 +65,9 @@ fn main() {
         .position_centered()
         .build()
         .unwrap();
+	let mut window_width = 1024 as i32;
+	let mut window_height = 768 as i32;
+	let mut minimized = false;
 
     let _gl_context = window.gl_create_context().unwrap();
     gl::load_with(|s| window.subsystem().gl_get_proc_address(s) as *const _);
@@ -81,7 +90,7 @@ fn main() {
     let model_loc =
         unsafe { gl::GetUniformLocation(shader_program, CString::new("model").unwrap().as_ptr()) };
 
-    let mut camera = Camera::new(1024, 768);
+    let mut camera = Camera::new(window_width, window_height);
     camera.update_target(model_center);
     let mut model_rotation = model::ModelRotation::new();
     let mut model_position = model::ModelPosition::new();
@@ -93,7 +102,6 @@ fn main() {
         (model_data.faces.len() * 3) as i32,
     );
 
-    // Load texture from command line argument
     renderer.load_texture(texture_path).unwrap_or_else(|_| {
         eprintln!("Failed to load texture: {}", texture_path);
         std::process::exit(1);
@@ -109,7 +117,17 @@ fn main() {
         for event in sdl_context.event_pump().unwrap().poll_iter() {
             match event {
                 sdl2::event::Event::Quit { .. } => break 'mainloop,
-                sdl2::event::Event::KeyDown {
+                sdl2::event::Event::Window { win_event, .. } => match win_event {
+					WindowEvent::Resized(width, height) |
+					WindowEvent::SizeChanged(width, height) => {
+						window_width = width as i32;
+						window_height = height as i32;
+					}
+					WindowEvent::Minimized => minimized = true,
+					WindowEvent::Restored => minimized = false,
+					_ => {}
+				},
+				sdl2::event::Event::KeyDown {
                     keycode: Some(keycode),
                     ..
                 } => match keycode {
@@ -130,8 +148,17 @@ fn main() {
                 _ => {}
             }
         }
+		if !minimized {
+			unsafe {
+				gl::Viewport(0, 0, window_width, window_height);
+			}
+			
+			if window_width != camera.width || window_height != camera.height {
+				camera.update_resolution(window_width, window_height);
+			}
 
-        renderer.render(&model_rotation, model_center, &camera, &model_position);
-        window.gl_swap_window();
+			renderer.render(&model_rotation, model_center, &camera, &model_position);
+			window.gl_swap_window();
+		}
     }
 }

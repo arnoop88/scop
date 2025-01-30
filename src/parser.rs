@@ -123,7 +123,6 @@ impl ObjData {
                     });
                 }
                 ["f", v1, v2, v3, v4] => {
-                    // First triangle
                     faces.push(Face {
                         vertex_indices: [
                             v1.split('/').next().unwrap().parse::<u32>().unwrap() - 1,
@@ -131,7 +130,6 @@ impl ObjData {
                             v3.split('/').next().unwrap().parse::<u32>().unwrap() - 1,
                         ],
                     });
-                    // Second triangle
                     faces.push(Face {
                         vertex_indices: [
                             v1.split('/').next().unwrap().parse::<u32>().unwrap() - 1,
