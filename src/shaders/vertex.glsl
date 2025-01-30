@@ -10,8 +10,8 @@ uniform float posOffset;
 uniform vec3 modelCenter;
 uniform vec3 modelPosition;
 
-out vec3 FragPos;     // Pass world position to fragment shader
-out vec3 Normal;      // Pass transformed normal to fragment shader
+out vec3 FragPos;
+out vec3 Normal;
 out vec2 TexCoord;
 
 void main() {

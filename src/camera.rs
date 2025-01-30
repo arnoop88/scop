@@ -38,7 +38,6 @@ impl Camera {
         let t = scale;
         let b = -t;
 
-        // Same perspective matrix calculation as in your vertex shader
         [
             [2.0 / (r - l), 0.0, 0.0, 0.0],
             [0.0, 2.0 / (t - b), 0.0, 0.0],
@@ -47,7 +46,6 @@ impl Camera {
         ]
     }
 
-    // Keep existing methods
     pub fn update_target(&mut self, model_center: [f32; 3]) {
         self.target = model_center;
     }
