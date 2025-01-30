@@ -51,15 +51,19 @@ void main() {
 
     vec4 finalColor;
 
-    // Smooth transitions between modes
-    if (textureBlend <= 0.5) {
-        // Blend Vertex -> Face
+    // Transition phases
+    if (textureBlend < 0.5) {
+        // Vertex <-> Face
         float t = textureBlend / 0.5;
         finalColor = mix(vertexColor, faceColor, t);
-    } else {
-        // Blend Face -> Texture
+    } else if (textureBlend < 1.0) {
+        // Face <-> Texture
         float t = (textureBlend - 0.5) / 0.5;
         finalColor = mix(faceColor, textureColor, t);
+    } else {
+        // Direct Texture->Vertex (no Face)
+        float t = textureBlend - 1.0;
+        finalColor = mix(textureColor, vertexColor, t);
     }
 
     FragColor = finalColor;

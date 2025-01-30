@@ -5,11 +5,11 @@ use crate::model::ModelRotation;
 use crate::texture::Texture;
 use gl;
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Copy, Clone)]
 pub enum RenderMode {
-    Vertex,  // Colorful vertex-based rendering
-    Face,    // Face-based color
-    Texture, // Textured rendering
+    Vertex,
+    Face,
+    Texture,
 }
 
 pub struct Renderer {
@@ -24,8 +24,14 @@ pub struct Renderer {
     texture_blend_loc: i32,
     texture_sampler_loc: i32,
     texture_blend: f32,
-	target_texture_blend: f32,
     render_mode: RenderMode,
+	current_mode: RenderMode,
+    target_mode: RenderMode,
+    transition_progress: f32,
+}
+
+fn lerp(start: f32, end: f32, t: f32) -> f32 {
+    start + (end - start) * t
 }
 
 impl Renderer {
@@ -85,8 +91,10 @@ impl Renderer {
             texture_blend_loc,
             texture_sampler_loc,
             texture_blend: 0.0,
-			target_texture_blend: 0.0,
             render_mode: RenderMode::Vertex,
+			current_mode: RenderMode::Vertex,
+			target_mode: RenderMode::Vertex,
+			transition_progress: 0.0,
         }
     }
 
@@ -126,8 +134,7 @@ impl Renderer {
                 }
             }
 
-            // Set polygon mode based on render mode
-            match self.render_mode {
+            match self.current_mode {
                 RenderMode::Vertex => gl::PolygonMode(gl::FRONT_AND_BACK, gl::LINE),
                 RenderMode::Face | RenderMode::Texture => {
                     gl::PolygonMode(gl::FRONT_AND_BACK, gl::FILL)
@@ -174,28 +181,29 @@ impl Renderer {
     }
 
     pub fn cycle_render_mode(&mut self) {
-        self.render_mode = match self.render_mode {
+        self.target_mode = match self.current_mode {
             RenderMode::Vertex => RenderMode::Face,
             RenderMode::Face => RenderMode::Texture,
             RenderMode::Texture => RenderMode::Vertex,
         };
-
-        // Set target blend based on new mode
-        self.target_texture_blend = match self.render_mode {
-            RenderMode::Vertex => 0.0,
-            RenderMode::Face => 0.5,
-            RenderMode::Texture => 1.0,
-        };
+		self.render_mode = self.target_mode;
+        self.transition_progress = 0.0;
     }
 
 	pub fn update(&mut self, delta_time: f32) {
-		let transition_speed = 3.0;
-		let delta = self.target_texture_blend - self.texture_blend;
-		if delta.abs() > 0.001 {
-			self.texture_blend += delta * transition_speed * delta_time;
-			if (self.target_texture_blend - self.texture_blend).abs() < 0.001 {
-				self.texture_blend = self.target_texture_blend;
-			}
-		}
-	}
+        let transition_speed = 3.0;
+        self.transition_progress += delta_time * transition_speed;
+        self.transition_progress = self.transition_progress.min(1.0);
+
+        self.texture_blend = match (self.current_mode, self.target_mode) {
+            (RenderMode::Vertex, RenderMode::Face) => lerp(0.0, 0.5, self.transition_progress),
+            (RenderMode::Face, RenderMode::Texture) => lerp(0.5, 1.0, self.transition_progress),
+            (RenderMode::Texture, RenderMode::Vertex) => lerp(1.0, 2.0, self.transition_progress),
+            _ => self.texture_blend,
+        };
+
+        if self.transition_progress >= 1.0 {
+            self.current_mode = self.target_mode;
+        }
+    }
 }
