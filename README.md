@@ -30,11 +30,12 @@ This project is a simple 3D viewer built using Rust and OpenGL. It allows you to
    If no arguments are provided, it will default to loading `models/42.obj` and `textures/sigma_cat.bmp`.
 
 3. **Controls**:
-   - **E**: Cycle through rendering modes (Vertex, Face, Texture).
-   - **Arrow Keys**: Move the model in the respective direction.
-   - **W/S**: Rotate the model up and down.
-   - **A/D**: Rotate the model left and right.
-   - **Z/X**: Zoom in and out.
+   - `E`: Cycle through rendering modes (Vertex, Face, Texture).
+   - `Arrow Keys`: Move the model in the respective direction.
+   - `W/S`: Rotate the model up and down.
+   - `A/D`: Rotate the model left and right.
+   - `Z/X`: Zoom in and out.
+   - `Q/ESC`: Quit the program.
 
 ## Dependencies
 
