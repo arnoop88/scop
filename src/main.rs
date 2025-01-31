@@ -59,15 +59,15 @@ fn main() {
     gl_attr.set_context_profile(sdl2::video::GLProfile::Core);
     gl_attr.set_context_version(3, 3);
 
+    let mut window_width = 1024 as i32;
+	let mut window_height = 768 as i32;
+	let mut minimized = false;
     let window = video_subsystem
-        .window("SCOP", 1024, 768)
+        .window("SCOP", window_width as u32, window_height as u32)
         .opengl()
         .position_centered()
         .build()
         .unwrap();
-	let mut window_width = 1024 as i32;
-	let mut window_height = 768 as i32;
-	let mut minimized = false;
 
     let _gl_context = window.gl_create_context().unwrap();
     gl::load_with(|s| window.subsystem().gl_get_proc_address(s) as *const _);
